@@ -1,0 +1,13 @@
+---
+- hosts: all
+  become: true
+  vars_files:
+    - vars.yml
+  tasks:
+    - include: common.yml
+    - include: aur.yml
+      become_user: "{{ansible_user}}"
+
+  handlers:
+    - name: docker status
+      service: name=docker state=started

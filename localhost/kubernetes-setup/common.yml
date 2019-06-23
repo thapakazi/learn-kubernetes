@@ -1,0 +1,30 @@
+---
+- name: Install base pkgs
+  pacman:
+    name: "{{ packages }}"
+    state: present
+    update_cache: yes
+  vars:
+    packages:
+      - ca-certificates
+      - curl
+      - git
+      - sudo
+
+- name: Set includedir in sudoers
+  lineinfile:
+    dest: /etc/sudoers
+    line: "#includedir /etc/sudoers.d"
+    state: present
+    validate: "/usr/sbin/visudo -cf %s"
+
+- name: Add user "ansibleuser" to sudo
+  lineinfile:
+    path: /etc/sudoers.d/{{ansible_user}}
+    line: "{{ansible_user}} ALL=(ALL) NOPASSWD: ALL"
+    state: present
+    mode: 0440
+    create: yes
+    validate: 'visudo -cf %s'
+
+

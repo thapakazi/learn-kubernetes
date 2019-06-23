@@ -1,0 +1,25 @@
+---
+- name: get stable release
+  debug: msg="{{ lookup('url', 'https://dl.k8s.io/release/stable.txt') }}"
+  register: release
+
+- name: Ensure CNI bin dir
+  file:
+    path: "{{ OPT_BIN_DIR }}"
+    state: directory
+
+- name: Download latest binaries
+  get_url:
+    url: "https://storage.googleapis.com/kubernetes-release/release/{{release.stdout}}/bin/linux/amd64/{{ item }}"
+    dest: "{{ OPT_BIN_DIR}}/{{item}}"
+    mode: 555
+    with_itmes:
+      - kubeadm
+      - kubelet
+      - kubectl
+- name: execute shell
+  shell: |
+    curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/${RELEASE}/build/debs/kubelet.service" | sed "s:/usr/bin:/opt/bin:g" > /etc/systemd/system/kubelet.service
+    mkdir -p /etc/systemd/system/kubelet.service.d
+    curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/${RELEASE}/build/debs/10-kubeadm.conf" | sed "s:/usr/bin:/opt/bin:g" > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+    systemctl enable kubelet && systemctl start kubelet

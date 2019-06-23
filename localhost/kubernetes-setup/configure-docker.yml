@@ -1,0 +1,65 @@
+---
+# - name: clone yay
+#   git:   
+#     repo: 'https://aur.archlinux.org/yay.git'
+#     dest: "{{yay_dir}}"
+
+# - name: make package
+#   shell: makepkg -si
+#   args:
+#     chdir:  "{{yay_dir}}"
+
+- name: cfssl is used somewhere
+  shell: yaourt -S --noconfirm cfssl
+  become_user: "{{ansible_user}}"
+
+- name: install docker
+  pacman:
+    name: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+      - docker
+
+- name: Ensure CNI bin dir
+  file:
+    path: "{{CNI_BIN_DIR}}"
+    state: directory
+
+- name: install CNI
+  unarchive:
+    src: "{{CNI_UPSTREAM}}"
+    dest: "{{CNI_BIN_DIR}}"
+    remote_src: yes
+
+- name: Ensure CRI bin dir
+  file:
+    path: "{{CRI_BIN_DIR}}"
+    state: directory
+  become: true
+
+- name: install CRI
+  unarchive:
+    src: "{{CRI_UPSTREAM}}"
+    dest: "{{CRI_BIN_DIR}}"
+    remote_src: yes
+
+
+- name: configure docker | Allow bridged IPV4 traffic to iptables' chains
+  sysctl:
+    name: net.bridge.bridge-nf-call-iptables
+    value: 1
+    state: present
+    sysctl_file: /etc/sysctl.conf
+
+
+- name: configure docker
+  ini_file:
+    dest=/usr/lib/systemd/system/docker.service
+    section=Service
+    option=ExecStart
+    value="/usr/bin/dockerd -H fd:// --iptables=false --ip-masq=false"
+    backup=yes
+  notify:
+    - systemd daemon reload
+    - restart docker

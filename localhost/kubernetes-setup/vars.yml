@@ -1,0 +1,16 @@
+---
+ansible_user: vagrant
+yay_dir: /tmp/yay
+
+
+
+
+CNI_VERSION: "v0.6.0"
+CNI_BIN_DIR: /opt/cni/bin
+CNI_UPSTREAM: "https://github.com/containernetworking/plugins/releases/download/{{CNI_VERSION}}/cni-plugins-amd64-{{CNI_VERSION}}.tgz"
+
+CRICTL_VERSION: "v1.11.1"
+CRI_BIN_DIR: /opt/cni/bin
+CRI_UPSTREAM: "https://github.com/kubernetes-incubator/cri-tools/releases/download/{{CRICTL_VERSION}}/crictl-{{CRICTL_VERSION}}-linux-amd64.tar.gz"
+
+OPT_BIN_DIR: /opt/bin

@@ -1,0 +1,20 @@
+---
+- hosts: all
+  become: true
+  vars_files:
+    - vars.yml
+  tasks:
+    - include: common.yml
+    - include: configure-docker.yml
+    - include: install-kubernetes.yml
+
+  handlers:
+    - name: restart docker
+      systemd:
+        name: docker
+        state: started
+        enabled: True
+
+    - name: systemd daemon reload
+      systemd: daemon_reload=yes
+
